@@ -3,15 +3,21 @@ server:
 
 
 spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+  #  datasource:
+#    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
+#    username: ${MYSQL_USERNAME}
+#    password: ${MySQL_PASSWORD}
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://${MYSQL_ADDRESS}/${MYSQL_DATABASE:springboot_demo}
-    username: ${MYSQL_USERNAME}
-    password: ${MySQL_PASSWORD}
+    url: jdbc:mysql://sh-cynosdbmysql-grp-8s7jkewg.sql.tencentcdb.com:29423/springboot_demo
+    username: root
+    password: QhM72R3J
   mvc:
     view:
       suffix: .html
       prefix: /
 
-mybatis:
-  mapper-locations: classpath*:mapper/*Mapper.xml
