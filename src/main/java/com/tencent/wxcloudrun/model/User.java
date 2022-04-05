@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.model;
 
 import com.tencent.wxcloudrun.model.util.UserRole;
+import org.checkerframework.common.aliasing.qual.Unique;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -17,8 +18,10 @@ public class User extends ModelBase implements Serializable {
 
     private String wxAvatarUrl;
 
+    @Unique
     private String wxUnionId;
 
+    @Unique
     private String wxUserId;
 
     @ManyToOne
