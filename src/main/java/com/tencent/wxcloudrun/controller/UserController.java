@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.controller;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.model.Session;
 import com.tencent.wxcloudrun.model.User;
@@ -9,9 +10,18 @@ import com.tencent.wxcloudrun.model.Warehouse;
 import com.tencent.wxcloudrun.model.util.UserRole;
 import com.tencent.wxcloudrun.service.UserService;
 import com.tencent.wxcloudrun.service.WarehouseService;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.HashMap;
 import java.util.Optional;
 
 @RestController
@@ -26,6 +36,22 @@ public class UserController {
         this.warehouseService = warehouseService;
     }
 
+    @GetMapping("/code2session")
+    public ApiResponse code2session(@RequestParam( name="code") String code){
+//        URL url = new URL("https://api.weixin.qq.com/sns/jscode2session?appid=wx4a6892851b35a0ed&secret=0e288d74d5d6d0327167925742782465&js_code=" + code + "&grant_type=authorization_code");
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpGet request = new HttpGet("https://api.weixin.qq.com/sns/jscode2session?appid=wx4a6892851b35a0ed&secret=0e288d74d5d6d0327167925742782465&js_code=" + code + "&grant_type=authorization_code");
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap response = client.execute(request, httpResponse ->
+                    mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
+            return  ApiResponse.ok(response);
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return ApiResponse.error();
+        }
+
+    }
     @PostMapping("/register")
     public ApiResponse register(@RequestBody JSONObject body){
         JSONObject data = new JSONObject();
