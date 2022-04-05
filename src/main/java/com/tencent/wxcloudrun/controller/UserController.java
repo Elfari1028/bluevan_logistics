@@ -38,7 +38,6 @@ public class UserController {
 
     @GetMapping("/code2session")
     public ApiResponse code2session(@RequestParam( name="code") String code){
-//        URL url = new URL("https://api.weixin.qq.com/sns/jscode2session?appid=wx4a6892851b35a0ed&secret=0e288d74d5d6d0327167925742782465&js_code=" + code + "&grant_type=authorization_code");
         try (CloseableHttpClient client = HttpClients.createDefault()) {
             HttpGet request = new HttpGet("https://api.weixin.qq.com/sns/jscode2session?appid=wx4a6892851b35a0ed&secret=0e288d74d5d6d0327167925742782465&js_code=" + code + "&grant_type=authorization_code");
             ObjectMapper mapper = new ObjectMapper();
@@ -48,9 +47,8 @@ public class UserController {
         }
         catch (Exception e) {
             e.printStackTrace();
-            return ApiResponse.error();
+            return ApiResponse.error("error");
         }
-
     }
     @PostMapping("/register")
     public ApiResponse register(@RequestBody JSONObject body){
