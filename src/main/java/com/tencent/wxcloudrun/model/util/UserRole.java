@@ -4,7 +4,7 @@ public enum UserRole{
     user(1), driver(2),warehouse_manager(3),warehouse_worker(4),platform_manager(5);
     final public int value;
     UserRole(int value) {
-        this.value = 1;
+        this.value = value;
     }
     public static UserRole of(int value){
         switch (value){

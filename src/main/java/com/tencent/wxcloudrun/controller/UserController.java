@@ -3,7 +3,9 @@ package com.tencent.wxcloudrun.controller;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.tencent.wxcloudrun.WxCloudRunApplication;
 import com.tencent.wxcloudrun.config.ApiResponse;
+import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.Session;
 import com.tencent.wxcloudrun.model.User;
 import com.tencent.wxcloudrun.model.Warehouse;
@@ -14,6 +16,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.logging.LoggingSystem;
 import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -23,6 +26,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.logging.Logger;
 
 @RestController
 @RequestMapping("/user")
@@ -65,8 +69,9 @@ public class UserController {
            if(session.isPresent()&& session.get().getUser()!=null){
                data.put("sessionKey",session.get().getSessionKey());
                data.put("name",session.get().getUser().getName());
-               data.put("wxUnionId",session.get().getUser().getWxUnionId());
+               data.put("sessionKey",session.get().getUser().getWxUnionId());
                data.put("wxAvatarUrl",session.get().getUser().getWxAvatarUrl());
+               data.put("role",session.get().getUser().getRole().value);
                return ApiResponse.ok(data);
            }
            return ApiResponse.error("注册失败,请稍后重试");
@@ -77,14 +82,17 @@ public class UserController {
     @PostMapping("/login")
     public ApiResponse login(@RequestBody JSONObject body){
         JSONObject data = new JSONObject();
-        if( userService.doesUserExists(body.getString("wxUnionId"))){
-            Optional<User> user = userService.getUserByWxUnionId("wxUnionId");
+        String userId = body.getString("wxUnionId");
+        L.info("/login  userId" + userId);
+        if( userService.doesUserExists(userId)){
+            Optional<User> user = userService.getUserByWxUnionId(userId);
             if(user.isPresent()){
                 Optional<Session> session =  userService.login(user.get());
                 if(session.isPresent() && session.get().getUser()!=null){
                     data.put("sessionKey",session.get().getSessionKey());
                     data.put("name",session.get().getUser().getName());
                     data.put("wxUnionId",session.get().getUser().getWxUnionId());
+                    data.put("role",session.get().getUser().getRole().value);
                     data.put("wxAvatarUrl",session.get().getUser().getWxAvatarUrl());
                     return ApiResponse.ok(data);
                 }

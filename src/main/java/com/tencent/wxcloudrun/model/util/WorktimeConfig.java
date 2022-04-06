@@ -33,7 +33,7 @@ public class WorktimeConfig extends BaseObject {
             config.stopTime =  TimeOfDay.objectify(obj.getString("stopTime"));
             config.interval = obj.getInteger("interval");
             config.offset = obj.getInteger("offset");
-            config.percentage = obj.getInteger("object");
+            config.percentage = obj.getInteger("percentage");
             return config;
 
         }catch (Exception e){
