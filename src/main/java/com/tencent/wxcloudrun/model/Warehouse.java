@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tencent.wxcloudrun.model.util.*;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import java.io.Serializable;
@@ -24,6 +25,8 @@ public class Warehouse extends ModelBase implements Serializable {
     private String workloadConfig;
 
     private String location;
+
+    private boolean deleted;
 
     public String getName() {
         return name;
@@ -66,5 +69,12 @@ public class Warehouse extends ModelBase implements Serializable {
         this.workloadConfig = workloadConfig.stringify();
     }
 
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
+    }
 }
 

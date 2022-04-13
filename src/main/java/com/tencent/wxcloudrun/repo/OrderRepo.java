@@ -6,17 +6,17 @@ import com.tencent.wxcloudrun.model.Warehouse;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
 public interface OrderRepo extends CrudRepository<Order,Integer> {
 
-    List<Order> findAllByStatusEqualsAndCreationDateBetween(int status, Date begin, Date end);
+    List<Order> findAllByStatusEqualsAndCreationDateBetween(int status, LocalDateTime begin, LocalDateTime end);
 
-    List<Order> findAllByCreatorAndStatusEqualsAndCreationDateBetween(User creator, int status, Date begin, Date end);
+    List<Order> findAllByCreatorAndStatusEqualsAndCreationDateBetween(User creator, int status, LocalDateTime begin, LocalDateTime end);
 
-    List<Order> findAllByTargetWarehouseAndStatusEqualsAndCreationDateBetween(Warehouse warehouse, int status, Date begin, Date end);
+    List<Order> findAllByTargetWarehouseAndStatusEqualsAndCreationDateBetween(Warehouse warehouse, int status, LocalDateTime begin, LocalDateTime end);
 
     List<Order> findAllByStatusEquals(int status);
 
@@ -24,16 +24,17 @@ public interface OrderRepo extends CrudRepository<Order,Integer> {
 
     List<Order> findAllByTargetWarehouseAndStatusEquals(Warehouse warehouse, int status);
 
-    List<Order> findAllByCreationDateBetween(Date begin, Date end);
+    List<Order> findAllByCreationDateBetween(LocalDateTime begin, LocalDateTime end);
 
-    List<Order> findAllByCreatorAndCreationDateBetween(User creator, Date begin, Date end);
+    List<Order> findAllByCreatorAndCreationDateBetween(User creator, LocalDateTime begin, LocalDateTime end);
 
-    List<Order> findAllByTargetWarehouseAndCreationDateBetween(Warehouse warehouse,  Date begin, Date end);
+    List<Order> findAllByTargetWarehouseAndCreationDateBetween(Warehouse warehouse,  LocalDateTime begin, LocalDateTime end);
 
 
     List<Order> findAllByCreator(User creator);
 
     List<Order> findAllByTargetWarehouse(Warehouse warehouse);
 
+    List<Order> findAllByTargetWarehouseAndTargetTimeBetween(Warehouse warehouse,LocalDateTime begin,LocalDateTime end);
 
 }

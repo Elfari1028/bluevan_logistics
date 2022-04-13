@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
@@ -25,9 +26,9 @@ public class OrderService {
         this.orderRepo = orderRepo;
     }
 
-    public Iterable<Order> getListByParams(Optional<Date> date, Optional<OrderStatus> status, User user) {
+    public Iterable<Order> getListByParams(Optional<LocalDateTime> date, Optional<OrderStatus> status, User user) {
         if(date.isPresent()){
-            Date end = Date.from(date.get().toInstant().minus(1, ChronoUnit.DAYS));
+            LocalDateTime end = date.get().plusDays(1);
             if(status.isPresent()){
                 // both
                 switch (user.getRole()){
@@ -90,12 +91,14 @@ public class OrderService {
         }
     }
 
-    public Date getAvailabletime(Order order) {
-        return Date.from(Instant.now());
-    }
-
     public Order saveOrder(Order order) {
-       return orderRepo.save(order);
+       if(order.getId() == 0){
+           order.setCreationDate(LocalDateTime.now());
+       }
+       else {
+           order.setLastModifiedDate(LocalDateTime.now());
+       }
+        return orderRepo.save(order);
     }
 
     public Optional<Order> getById(int id){

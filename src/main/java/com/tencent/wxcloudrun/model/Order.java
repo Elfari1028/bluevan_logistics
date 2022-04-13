@@ -8,6 +8,7 @@ import com.tencent.wxcloudrun.model.util.OrderStatus;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,9 +26,11 @@ public class Order extends ModelBase implements Serializable {
 
     @Column(name = "order_option")
     private int option; // 0 auto 1 system
-    private Date targetTime;
+    private LocalDateTime targetTime;
     private String receiverId;
     private String cargos; //jsonfied data of cargos;
+
+    private String note;
 
     @Column(name = "order_status")
     private int status;
@@ -95,11 +98,11 @@ public class Order extends ModelBase implements Serializable {
         this.option = option;
     }
 
-    public Date getTargetTime() {
+    public LocalDateTime getTargetTime() {
         return targetTime;
     }
 
-    public void setTargetTime(Date targetTime) {
+    public void setTargetTime(LocalDateTime targetTime) {
         this.targetTime = targetTime;
     }
 
@@ -117,6 +120,14 @@ public class Order extends ModelBase implements Serializable {
 
     public void setStatus(OrderStatus status) {
         this.status = status.value;
+    }
+
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
     }
 }
 

@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Entity
@@ -17,7 +18,7 @@ public class Session extends ModelBase implements Serializable {
 
     private String extras;
 
-    private Date lastActiveDate;
+    private LocalDateTime lastActiveDate;
 
 
     public String getSessionKey() {
@@ -44,11 +45,11 @@ public class Session extends ModelBase implements Serializable {
         this.extras = extras;
     }
 
-    public Date getLastActiveDate() {
+    public LocalDateTime getLastActiveDate() {
         return lastActiveDate;
     }
 
-    public void setLastActiveDate(Date lastActiveDate) {
+    public void setLastActiveDate(LocalDateTime lastActiveDate) {
         this.lastActiveDate = lastActiveDate;
     }
 }

@@ -3,7 +3,7 @@ package com.tencent.wxcloudrun.model.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 
-public class Cargo extends BaseObject{
+public class Cargo extends BaseObject {
 
     private String name;
     private int count;
@@ -14,9 +14,9 @@ public class Cargo extends BaseObject{
     private String note;
 
 
-    public static Cargo objectify(String str){
-        try{
-            Cargo cargo  = new Cargo();
+    public static Cargo objectify(String str) {
+        try {
+            Cargo cargo = new Cargo();
             JSONObject obj = JSON.parseObject(str);
             cargo.name = obj.getString("name");
             cargo.count = obj.getInteger("count");
@@ -27,27 +27,41 @@ public class Cargo extends BaseObject{
             cargo.note = obj.getString("note");
             return cargo;
 
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
 
     @Override
     public String stringify() {
-       try{
-           JSONObject obj = new JSONObject();
-           obj.put("name",name);
-           obj.put("count",count);
-           obj.put("cargoType",cargoType);
-           obj.put("packageType",packageType);
-           obj.put("volume",volume);
-           obj.put("weight",weight);
-           obj.put("note",note);
-           return obj.toString();
-       }catch (Exception e){
-           return  null;
-       }
+        try {
+            JSONObject obj = new JSONObject();
+            obj.put("name", name);
+            obj.put("count", count);
+            obj.put("cargoType", cargoType);
+            obj.put("packageType", packageType);
+            obj.put("volume", volume);
+            obj.put("weight", weight);
+            obj.put("note", note);
+            return obj.toString();
+        } catch (Exception e) {
+            return null;
+        }
     }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        obj.put("name", name);
+        obj.put("count", count);
+        obj.put("cargoType", cargoType);
+        obj.put("packageType", packageType);
+        obj.put("volume", volume);
+        obj.put("weight", weight);
+        obj.put("note", note);
+        return obj;
+    }
+
 
     public String getName() {
         return name;

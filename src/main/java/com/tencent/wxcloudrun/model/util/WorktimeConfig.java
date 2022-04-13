@@ -25,6 +25,18 @@ public class WorktimeConfig extends BaseObject {
         return obj.toString();
     }
 
+    @Override
+    public JSONObject toJSON() {
+        JSONObject obj =  new JSONObject();
+        obj.put("startTime",startTime.stringify());
+        obj.put("stopTime",stopTime.stringify());
+        obj.put("interval",interval);
+        obj.put("offset",offset);
+        obj.put("percentage",percentage);
+        return obj;
+    }
+
+
     public static WorktimeConfig objectify(String str) {
         try{
             WorktimeConfig config = new WorktimeConfig();
@@ -35,8 +47,8 @@ public class WorktimeConfig extends BaseObject {
             config.offset = obj.getInteger("offset");
             config.percentage = obj.getInteger("percentage");
             return config;
-
         }catch (Exception e){
+            e.printStackTrace();
             return null;
         }
     }

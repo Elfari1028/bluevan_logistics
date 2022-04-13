@@ -8,6 +8,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @MappedSuperclass
@@ -26,35 +27,28 @@ public abstract class ModelBase  implements Serializable {
         this.id = id;
     }
 
-    @CreatedBy
-    protected int createdBy;
 
     @CreatedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    protected Date creationDate;
+    protected LocalDateTime creationDate;
 
-    @LastModifiedBy
-    private int lastModifiedBy;
 
     @LastModifiedDate
-    @Temporal(TemporalType.TIMESTAMP)
-    protected Date lastModifiedDate;
+    protected LocalDateTime lastModifiedDate;
 
-    public Date getCreationDate(){
+
+    public LocalDateTime getCreationDate() {
         return creationDate;
     }
-    // setter and getter
 
-
-    public void setCreationDate(Date creationDate) {
+    public void setCreationDate(LocalDateTime creationDate) {
         this.creationDate = creationDate;
     }
 
-    public Date getLastModifiedDate() {
+    public LocalDateTime getLastModifiedDate() {
         return lastModifiedDate;
     }
 
-    public void setLastModifiedDate(Date lastModifiedDate) {
+    public void setLastModifiedDate(LocalDateTime lastModifiedDate) {
         this.lastModifiedDate = lastModifiedDate;
     }
 }

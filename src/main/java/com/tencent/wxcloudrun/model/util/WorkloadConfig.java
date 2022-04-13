@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.model.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.tencent.wxcloudrun.config.L;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -32,17 +33,35 @@ public class WorkloadConfig extends BaseObject{
         return obj.toString();
     }
 
+    @Override
+    public JSONObject toJSON() {
+           JSONObject obj = new JSONObject();
+        this.map.forEach(new BiConsumer<String, Info>() {
+            @Override
+            public void accept(String s, Info info) {
+                obj.put(s,info.toJSON());
+            }
+        });
+        return obj;
+    }
+
     static public WorkloadConfig objectify(String str){
         JSONObject obj = JSON.parseObject(str);
         WorkloadConfig config = new WorkloadConfig();
+        L.info("before:"+str + "\n" +"after:"+obj.toString());
         obj.getInnerMap().forEach(new BiConsumer<String, Object>() {
             @Override
             public void accept(String s, Object o) {
-                if(o instanceof String){
-                    config.map.put(s,Info.objectify((String)o)) ;
+
+                if(o instanceof JSONObject){
+                    config.map.put(s,Info.objectifyJSON(((JSONObject) o))) ;
+                }
+                else if(o instanceof  String){
+                    config.map.put(s,Info.objectify((String)o));
                 }
             }
         });
+        L.info(config.toString());
         return config;
     }
 
@@ -50,6 +69,14 @@ public class WorkloadConfig extends BaseObject{
         private String packageType;
         private int maxLoad;
         private List<Integer> settings;
+
+        static public Info objectifyJSON(JSONObject obj){
+            Info info = new Info();
+            info.packageType = obj.getString("packageType");
+            info.maxLoad = obj.getInteger("maxLoad");
+            info.settings = obj.getJSONArray("settings").toJavaList(Integer.class);
+            return info;
+        }
 
         static public Info objectify(String str){
             JSONObject obj = JSON.parseObject(str);
@@ -66,6 +93,15 @@ public class WorkloadConfig extends BaseObject{
             obj.put("maxLoad",this.maxLoad);
             obj.put("settings",this.settings);
             return obj.toString();
+        }
+
+        @Override
+        public JSONObject toJSON() {
+             JSONObject obj = new JSONObject();
+            obj.put("packageType",this.packageType);
+            obj.put("maxLoad",this.maxLoad);
+            obj.put("settings",this.settings);
+            return obj;
         }
     }
 }

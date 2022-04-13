@@ -1,6 +1,7 @@
 package com.tencent.wxcloudrun.service;
 
 import com.google.common.collect.Lists;
+import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.Session;
 import com.tencent.wxcloudrun.model.User;
 import com.tencent.wxcloudrun.model.util.UserRole;
@@ -10,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
@@ -60,7 +62,7 @@ public class UserService {
         }
         Session session = new Session();
         session.setSessionKey(UUID.randomUUID().toString());
-        session.setLastActiveDate(Date.from(Instant.now()));
+        session.setLastActiveDate(LocalDateTime.now());
         session.setUser(user);
         sessionRepo.save(session);
         return Optional.of(session);
@@ -70,8 +72,8 @@ public class UserService {
         Optional<Session> s = sessionRepo.findBySessionKey(sessionKey);
         if (s.isPresent()) {
             Session session = s.get();
-            if (session.getUser() != null && session.getLastActiveDate().after(Date.from(Instant.now().minus(7, ChronoUnit.DAYS)))) {
-                session.setLastActiveDate(Date.from(Instant.now()));
+            if (session.getUser() != null && session.getLastActiveDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                session.setLastActiveDate(LocalDateTime.now());
                 sessionRepo.save(session);
                 return Optional.of(session);
             } else {
@@ -79,6 +81,7 @@ public class UserService {
                 return Optional.empty();
             }
         } else {
+            L.info("session "+sessionKey+" is not present");
             return Optional.empty();
         }
     }

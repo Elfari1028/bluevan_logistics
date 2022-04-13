@@ -12,10 +12,12 @@ spring:
 #    username: ${MYSQL_USERNAME}
 #    password: ${MySQL_PASSWORD}
   datasource:
+    hikari:
+      maxLifetime:18000
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://sh-cynosdbmysql-grp-8s7jkewg.sql.tencentcdb.com:29423/springboot_demo
+    url: jdbc:mysql://sh-cynosdbmysql-grp-rr5vyhp0.sql.tencentcdb.com:22489/baraka_logistics
     username: root
-    password: QhM72R3J
+    password: B6Yp9F9m
     tomcat:
       initSQL: SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci
   mvc:

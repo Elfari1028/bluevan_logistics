@@ -34,6 +34,12 @@ public class Location extends BaseObject {
         }
     }
 
+    @Override
+    public JSONObject toJSON() {
+        return  jsonObjectify();
+
+    }
+
     public JSONObject jsonObjectify(){
         try{
             JSONObject obj = new JSONObject();

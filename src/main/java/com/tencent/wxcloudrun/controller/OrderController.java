@@ -1,5 +1,7 @@
 package com.tencent.wxcloudrun.controller;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.model.Order;
@@ -16,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -37,9 +40,9 @@ public class OrderController {
 
     @GetMapping("/list")
     public ApiResponse orderList(@RequestParam(name = "session") String session, @RequestParam(name="date",required = false) String dateStr, @RequestParam(name="status",required = false) String stat){
-        Optional<Date> date = Optional.empty();
+        Optional<LocalDateTime> date = Optional.empty();
         if(!( dateStr  == null || dateStr.length() == 0)){
-           date = Optional.of(Date.from(Instant.parse(dateStr)));
+           date = Optional.of(LocalDateTime.parse(dateStr));
        }
         Optional<OrderStatus> status = Optional.empty();
         if(!(stat == null || stat.length() == 0))
@@ -51,16 +54,77 @@ public class OrderController {
             return ApiResponse.error("请先登录");
         }
         Iterable<Order> orders = orderService.getListByParams(date, status,sop.get().getUser());
-        return ApiResponse.ok(orders);
+        List<JSONObject >ret = new ArrayList<>();
+        for (Order order:
+             orders) {
+            JSONObject object = new JSONObject();
+            object.put("id",order.getId());
+            object.put("senderName",order.getSenderName());
+            object.put("senderPhone",order.getSenderPhone());
+            object.put("warehouseId",order.getTargetWarehouse().getId());
+            JSONObject warehouse =  new JSONObject();
+            warehouse.put("location",order.getTargetWarehouse().getLocation());
+            warehouse.put("name",order.getTargetWarehouse().getName());
+            warehouse.put("id",order.getTargetWarehouse().getId());
+            warehouse.put("description",order.getTargetWarehouse().getDescription());
+            object.put("warehouse",warehouse);
+            object.put("receiverId",order.getReceiverId());
+            object.put("creationDate",order.getCreationDate());
+            object.put("option",order.getOption());
+            object.put("targetTime",order.getTargetTime());
+            object.put("targetEndTime",order.getTargetTime().plusMinutes(order.getTargetWarehouse().getWorktimeConfig().getInterval()));
+            object.put("status",order.getStatus().value);
+            object.put("note",order.getNote());
+            ret.add(object);
+        }
+        return ApiResponse.ok(ret);
     }
 
 
     @GetMapping("/detail")
     public ApiResponse detailOrder(@RequestParam(name = "session") String session, @RequestParam(name = "id") Integer id){
-
-        return ApiResponse.ok();
+        Optional<Session> s = userService.isUserLoggedIn(session);
+        if(!s.isPresent()){
+            return ApiResponse.error("请先登录");
+        }
+        Optional<Order> ord = orderService.getById(id);
+        if(!ord.isPresent()){
+            return ApiResponse.error("订单不存在");
+        }
+        Order order = ord.get();
+        JSONObject object = new JSONObject();
+        object.put("id",order.getId());
+        object.put("senderName",order.getSenderName());
+        object.put("senderPhone",order.getSenderPhone());
+        object.put("warehouseId",order.getTargetWarehouse().getId());
+        JSONObject warehouse =  new JSONObject();
+        warehouse.put("location",order.getTargetWarehouse().getLocation());
+        warehouse.put("name",order.getTargetWarehouse().getName());
+        warehouse.put("id",order.getTargetWarehouse().getId());
+        warehouse.put("description",order.getTargetWarehouse().getDescription());
+        object.put("warehouse",warehouse);
+        object.put("cargos",order.getCargos());
+        object.put("receiverId",order.getReceiverId());
+        object.put("creationDate",order.getCreationDate());
+        object.put("option",order.getOption());
+        object.put("canEdit",canEdit(s.get(),order));
+        object.put("targetTime",order.getTargetTime());
+        object.put("targetEndTime",order.getTargetTime().plusMinutes(order.getTargetWarehouse().getWorktimeConfig().getInterval()));
+        object.put("status",order.getStatus().value);
+        object.put("note",order.getNote());
+        return ApiResponse.ok(object);
     }
 
+    boolean canEdit(Session s, Order order){
+        return (
+                        (  order.getCreator().getWxUnionId().equals(s.getUser().getWxUnionId())
+                                &&  order.getStatus() == OrderStatus.created)
+                        |
+                        ( (s.getUser().getRole() == UserRole.warehouse_manager ||s.getUser().getRole() == UserRole.warehouse_worker )
+                                && order.getTargetWarehouse().getId() == s.getUser().getWarehouse().getId() )
+                        | s.getUser().getRole() == UserRole.platform_manager  );
+
+    }
 
     @PostMapping("/create")
     public ApiResponse createOrder(@RequestParam(name = "session") String session, @RequestBody JSONObject body){
@@ -70,9 +134,9 @@ public class OrderController {
         }
         User creator = s.get().getUser();
 
-        if(creator.getRole() != UserRole.driver || creator.getRole() != UserRole.user){
-            return ApiResponse.error("登录用户身份错误!");
-        }
+//        if(creator.getRole() != UserRole.driver || creator.getRole() != UserRole.user){
+//            return ApiResponse.error("登录用户身份错误!");
+//        }
         Order order = new Order();
 
         order.setCreator(creator);  // 1
@@ -87,7 +151,7 @@ public class OrderController {
         }
 
 
-        Optional<Order> ord = orderService.getById(body.getIntValue("orderId"));
+        Optional<Order> ord = orderService.getById(body.getIntValue("id"));
         if(!ord.isPresent()){
             return ApiResponse.error("订单不存在");
         }
@@ -103,7 +167,7 @@ public class OrderController {
                 }
                 break;
             case warehouse_manager:
-//            case warehouse_worker:
+            case warehouse_worker:
                 if(sop.get().getUser().getWarehouse().getId() != order.getTargetWarehouse().getId()){
                     return ApiResponse.error("没有权限:不是您仓库的订单");
                 }
@@ -126,21 +190,22 @@ public class OrderController {
         }
         order.setCargos(list); // 5
 
-        Optional<Warehouse> target = warehouseService.findById(body.getIntValue("warehouseId"));
+        Optional<Warehouse> target = warehouseService.getById(body.getIntValue("warehouseId"));
         if(!target.isPresent()){
             return ApiResponse.error("仓库不存在");
         }
         order.setTargetWarehouse(target.get()); // 6
-
-
-        order.setOption(body.getIntValue("option")); // 7
-        if(order.getOption() == 0){
-            if(order.getId() != 0){
-                order.setTargetTime(orderService.getAvailabletime(order));
+        order.setNote(body.getString("note"));
+        int newOption = (body.getIntValue("option")); // 7
+        if(newOption == 0) {
+            if (order.getId() == 0 || order.getOption() == 1) {
+                order.setOption(newOption);
+                order.setTargetTime(warehouseService.pickTimeFor(order));
             }
         }
         else {
-            order.setTargetTime(body.getDate(body.getString("targetTime")));
+            order.setOption(newOption);
+            order.setTargetTime(LocalDateTime.parse(body.getString("targetTime")));
         }
         if(order.getId() == 0){
             order.setStatus(OrderStatus.created);

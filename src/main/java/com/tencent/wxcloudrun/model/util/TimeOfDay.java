@@ -1,10 +1,13 @@
 package com.tencent.wxcloudrun.model.util;
 
+import com.alibaba.fastjson.JSONObject;
+
+import java.io.Serializable;
 import java.sql.Time;
 import java.util.Arrays;
 import java.util.List;
 
-public class TimeOfDay extends BaseObject {
+public class TimeOfDay extends BaseObject implements Serializable {
     private Integer hh;
     private Integer mm;
 
@@ -16,6 +19,14 @@ public class TimeOfDay extends BaseObject {
     public void setTime(int hh, int mm) {
         this.hh = (hh >= 0 && hh < 24) ? hh : 0;
         this.mm = (mm >= 0 && mm < 60) ? mm : 0;
+    }
+
+    public Integer getHour() {
+        return hh;
+    }
+
+    public Integer getMinute() {
+        return mm;
     }
 
     @Override
@@ -32,6 +43,14 @@ public class TimeOfDay extends BaseObject {
     @Override
     public String stringify() {
         return this.toString();
+    }
+
+    @Override
+    public JSONObject toJSON() {
+        JSONObject obj = new JSONObject();
+        obj.put("hour",hh);
+        obj.put("minute",getMinute());
+        return obj;
     }
 
     public static TimeOfDay objectify(String str) {

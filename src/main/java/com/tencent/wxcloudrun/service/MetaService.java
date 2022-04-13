@@ -2,6 +2,7 @@ package com.tencent.wxcloudrun.service;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.MetaConfig;
 import com.tencent.wxcloudrun.model.util.GlobalMetaFields;
 import com.tencent.wxcloudrun.repo.MetaRepo;
@@ -33,6 +34,7 @@ public class MetaService {
                     case banlist:
                         config.setValue("");
                 }
+                metaRepo.save(config);
             }
         }
     }
@@ -48,14 +50,14 @@ public class MetaService {
     public void set(GlobalMetaFields field, Object str){
         Optional<MetaConfig> configOp =  metaRepo.findByFieldName(field.value);
         MetaConfig config = configOp.get();
-        config.setValue(field.toString());
+        config.setValue(str.toString());
         metaRepo.save(config);
     }
 
 
     public List<String> getPackageTypes(){
       String raw = get(GlobalMetaFields.packageType);
-      return JSON.parseArray(raw).toJavaList(String.class);
+        return JSON.parseArray(raw).toJavaList(String.class);
     }
 
     public List<String> getCargoTypes(){

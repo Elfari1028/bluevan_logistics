@@ -35,65 +35,83 @@ public class UserController {
     final UserService userService;
     final WarehouseService warehouseService;
 
-    public UserController(@Autowired UserService userService,@Autowired WarehouseService warehouseService) {
+    public UserController(@Autowired UserService userService, @Autowired WarehouseService warehouseService) {
         this.userService = userService;
         this.warehouseService = warehouseService;
     }
 
     @GetMapping("/code2session")
-    public ApiResponse code2session(@RequestParam( name="code") String code){
+    public ApiResponse code2session(@RequestParam(name = "code") String code) {
         try (CloseableHttpClient client = HttpClients.createDefault()) {
-            HttpGet request = new HttpGet("https://api.weixin.qq.com/sns/jscode2session?appid=wx4a6892851b35a0ed&secret=0e288d74d5d6d0327167925742782465&js_code=" + code + "&grant_type=authorization_code");
+            HttpGet request = new HttpGet("https://api.weixin.qq.com/sns/jscode2session?appid=wx3fb342c39ddf2cd7&secret=20e3c200fdaf433818d44c1434714988&js_code=" + code + "&grant_type=authorization_code");
             ObjectMapper mapper = new ObjectMapper();
             HashMap response = client.execute(request, httpResponse ->
                     mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
-            return  ApiResponse.ok(response);
-        }
-        catch (Exception e) {
+            return ApiResponse.ok(response);
+        } catch (Exception e) {
             e.printStackTrace();
             return ApiResponse.error("error");
         }
     }
+
     @PostMapping("/register")
-    public ApiResponse register(@RequestBody JSONObject body){
+    public ApiResponse register(@RequestBody JSONObject body) {
         JSONObject data = new JSONObject();
-       Optional<User> user = userService.register(
+        Optional<User> user = userService.register(
                 body.getString("phone"),
                 body.getString("name"),
                 body.getString("wxName"),
                 body.getString("wxUserId"),
                 body.getString("wxUnionId"),
                 body.getString("wxAvatarUrl"));
-        if(user.isPresent()){
-           Optional<Session> session =  userService.login(user.get());
-           if(session.isPresent()&& session.get().getUser()!=null){
-               data.put("sessionKey",session.get().getSessionKey());
-               data.put("name",session.get().getUser().getName());
-               data.put("sessionKey",session.get().getUser().getWxUnionId());
-               data.put("wxAvatarUrl",session.get().getUser().getWxAvatarUrl());
-               data.put("role",session.get().getUser().getRole().value);
-               return ApiResponse.ok(data);
-           }
-           return ApiResponse.error("注册失败,请稍后重试");
+        if (user.isPresent()) {
+            Optional<Session> session = userService.login(user.get());
+            if (session.isPresent() && session.get().getUser() != null) {
+                data.put("sessionKey", session.get().getSessionKey());
+                data.put("name", session.get().getUser().getName());
+                data.put("sessionKey", session.get().getUser().getWxUnionId());
+                data.put("wxAvatarUrl", session.get().getUser().getWxAvatarUrl());
+                data.put("role", session.get().getUser().getRole().value);
+                User u = session.get().getUser();
+                if (u.getWarehouse() != null) {
+                    JSONObject warehouse = new JSONObject();
+                    warehouse.put("name", u.getWarehouse().getName());
+                    warehouse.put("description", u.getWarehouse().getDescription());
+                    warehouse.put("id", u.getWarehouse().getId());
+                    warehouse.put("location", u.getWarehouse().getLocation().jsonObjectify());
+                    data.put("warehouse", warehouse);
+                }
+                return ApiResponse.ok(data);
+            }
+            return ApiResponse.error("注册失败,请稍后重试");
         }
         return ApiResponse.error("注册失败,请稍后重试");
     }
 
     @PostMapping("/login")
-    public ApiResponse login(@RequestBody JSONObject body){
+    public ApiResponse login(@RequestBody JSONObject body) {
         JSONObject data = new JSONObject();
         String userId = body.getString("wxUnionId");
         L.info("/login  userId" + userId);
-        if( userService.doesUserExists(userId)){
+        if (userService.doesUserExists(userId)) {
             Optional<User> user = userService.getUserByWxUnionId(userId);
-            if(user.isPresent()){
-                Optional<Session> session =  userService.login(user.get());
-                if(session.isPresent() && session.get().getUser()!=null){
-                    data.put("sessionKey",session.get().getSessionKey());
-                    data.put("name",session.get().getUser().getName());
-                    data.put("wxUnionId",session.get().getUser().getWxUnionId());
-                    data.put("role",session.get().getUser().getRole().value);
-                    data.put("wxAvatarUrl",session.get().getUser().getWxAvatarUrl());
+            if (user.isPresent()) {
+                Optional<Session> session = userService.login(user.get());
+                if (session.isPresent() && session.get().getUser() != null) {
+                    data.put("sessionKey", session.get().getSessionKey());
+                    data.put("name", session.get().getUser().getName());
+                    data.put("wxUnionId", session.get().getUser().getWxUnionId());
+                    data.put("role", session.get().getUser().getRole().value);
+                    data.put("wxAvatarUrl", session.get().getUser().getWxAvatarUrl());
+                    User u = session.get().getUser();
+                    if (u.getWarehouse() != null) {
+                        JSONObject warehouse = new JSONObject();
+                        warehouse.put("name", u.getWarehouse().getName());
+                        warehouse.put("description", u.getWarehouse().getDescription());
+                        warehouse.put("id", u.getWarehouse().getId());
+                        warehouse.put("location", u.getWarehouse().getLocation().jsonObjectify());
+                        data.put("warehouse", warehouse);
+                    }
                     return ApiResponse.ok(data);
                 }
                 return ApiResponse.error("登录失败,请稍后重试");
@@ -103,69 +121,99 @@ public class UserController {
     }
 
     @PostMapping("/edit")
-    public ApiResponse edit(@RequestParam(name = "session") String session, @RequestBody JSONObject body){
+    public ApiResponse edit(@RequestParam(name = "session") String session, @RequestBody JSONObject body) {
         JSONObject data = new JSONObject();
         Optional<Session> s = userService.isUserLoggedIn(session);
-        if(s.isPresent() && s.get().getUser()!=null){
+        if (s.isPresent() && s.get().getUser() != null) {
             User u = s.get().getUser();
-            if(u.getRole() != UserRole.platform_manager){
+            if (u.getRole() != UserRole.platform_manager) {
                 return ApiResponse.error("没有权限");
-            }
-            else {
+            } else {
                 String unionId = body.getString("wxUnionId");
                 Optional<User> target = userService.getUserByWxUnionId(unionId);
-                if(target.isPresent()){
+                if (target.isPresent()) {
                     User user = target.get();
-                    if(body.containsKey("phone")){
+                    if (body.containsKey("phone")) {
                         user.setPhone(body.getString("phone"));
                     }
-                    if(body.containsKey("role")){
+                    if (body.containsKey("role")) {
                         user.setRole(UserRole.of(body.getIntValue("role")));
-                        if(user.getRole() == UserRole.warehouse_manager || user.getRole() == UserRole.warehouse_worker){
-                            Optional<Warehouse> wh =  warehouseService.findById(body.getIntValue("warehouseId"));
-                            if(!wh.isPresent()){
+                        if (user.getRole() == UserRole.warehouse_manager || user.getRole() == UserRole.warehouse_worker) {
+                            Optional<Warehouse> wh = warehouseService.findById(body.getIntValue("warehouseId"));
+                            if (!wh.isPresent()) {
                                 return ApiResponse.error("仓库不存在");
                             }
                             user.setWarehouse(wh.get());
                         }
                     }
-                    if(body.containsKey("name")){
+                    if (body.containsKey("name")) {
                         user.setName(body.getString("name"));
                     }
                     userService.saveEditedUser(user);
                     return ApiResponse.ok(data);
-                }
-                else {
+                } else {
                     return ApiResponse.error("用户不存在!");
                 }
             }
+        } else {
+            return ApiResponse.error("登录状态错误,请重新登录");
         }
-        else {
+    }
+
+    @PostMapping("/role/edit")
+    public ApiResponse editRole(@RequestParam(name = "session") String session, @RequestBody JSONObject body) {
+        JSONObject data = new JSONObject();
+        Optional<Session> s = userService.isUserLoggedIn(session);
+        if (s.isPresent() && s.get().getUser() != null) {
+            User u = s.get().getUser();
+            if (u.getRole() != UserRole.platform_manager) {
+                return ApiResponse.error("没有权限");
+            } else {
+                String unionId = body.getString("wxUnionId");
+                Optional<User> target = userService.getUserByWxUnionId(unionId);
+                if (target.isPresent()) {
+                    User user = target.get();
+                    user.setRole(UserRole.of(body.getIntValue("role")));
+                    if (user.getRole() == UserRole.warehouse_manager || user.getRole() == UserRole.warehouse_worker) {
+                        Optional<Warehouse> wh = warehouseService.findById(body.getIntValue("warehouseId"));
+                        if (!wh.isPresent()) {
+                            return ApiResponse.error("仓库不存在");
+                        }
+                        user.setWarehouse(wh.get());
+                    }
+                    userService.saveEditedUser(user);
+                    return ApiResponse.ok(data);
+                } else {
+                    return ApiResponse.error("用户不存在!");
+                }
+            }
+        } else {
             return ApiResponse.error("登录状态错误,请重新登录");
         }
     }
 
     @GetMapping("/list")
-    public ApiResponse listAll(@RequestParam(name = "session") String session){
-        Optional<Session> s =  userService.isUserLoggedIn(session);
-        if(!s.isPresent()){
+    public ApiResponse listAll(@RequestParam(name = "session") String session) {
+        Optional<Session> s = userService.isUserLoggedIn(session);
+        if (!s.isPresent()) {
             return ApiResponse.error("请先登录");
         }
         JSONArray data = new JSONArray();
         Iterable<User> list = userService.getAllUsers();
-        for (User u:list) {
+        for (User u : list) {
             JSONObject user = new JSONObject();
-            user.put("phone",u.getPhone());
-            user.put("wxUnionId",u.getWxUnionId());
-            user.put("name",u.getName());
-            user.put("role",u.getRole());
-            if(u.getWarehouse() != null){
+            user.put("phone", u.getPhone());
+            user.put("avatar", u.getWxAvatarUrl());
+            user.put("wxUnionId", u.getWxUnionId());
+            user.put("name", u.getName());
+            user.put("role", u.getRole().value);
+            if (u.getWarehouse() != null) {
                 JSONObject warehouse = new JSONObject();
-                warehouse.put("name",u.getWarehouse().getName());
-                warehouse.put("description",u.getWarehouse().getDescription());
-                warehouse.put("id",u.getWarehouse().getId());
-                warehouse.put("location",u.getWarehouse().getLocation().jsonObjectify());
-                user.put("warehouse",warehouse);
+                warehouse.put("name", u.getWarehouse().getName());
+                warehouse.put("description", u.getWarehouse().getDescription());
+                warehouse.put("id", u.getWarehouse().getId());
+                warehouse.put("location", u.getWarehouse().getLocation().jsonObjectify());
+                user.put("warehouse", warehouse);
             }
             data.add(user);
         }
