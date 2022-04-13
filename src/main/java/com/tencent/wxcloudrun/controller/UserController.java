@@ -69,7 +69,6 @@ public class UserController {
             if (session.isPresent() && session.get().getUser() != null) {
                 data.put("sessionKey", session.get().getSessionKey());
                 data.put("name", session.get().getUser().getName());
-                data.put("sessionKey", session.get().getUser().getWxUnionId());
                 data.put("wxAvatarUrl", session.get().getUser().getWxAvatarUrl());
                 data.put("role", session.get().getUser().getRole().value);
                 User u = session.get().getUser();
