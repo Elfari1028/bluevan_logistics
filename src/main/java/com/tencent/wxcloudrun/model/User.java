@@ -28,6 +28,9 @@ public class User extends ModelBase implements Serializable {
     private Warehouse warehouse;
 
 
+    // 0 normal 1 test 2 deleted
+    private int status;
+
     // 0 user, 1 driver, 2 warehouse-receiver, 3 warehouse-manager 4 platform-manager
     private int role;
 
@@ -95,4 +98,5 @@ public class User extends ModelBase implements Serializable {
     public void setRole(UserRole role) {
         this.role = role.value;
     }
+
 }

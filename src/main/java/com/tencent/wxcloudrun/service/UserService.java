@@ -56,6 +56,7 @@ public class UserService {
         if (!doesUserExists(user.getWxUserId())) {
             return Optional.empty();
         }
+
         Optional<Session> s = isUserLoggedIn(user.getWxUnionId());
         if (s.isPresent()) {
             return s;
@@ -68,6 +69,23 @@ public class UserService {
         return Optional.of(session);
     }
 
+    public Optional<Session> findValidSessionForUser(User u){
+        Optional<Session> s = sessionRepo.findByUser(u);
+        if (s.isPresent()) {
+            Session session = s.get();
+            if (session.getLastActiveDate().isAfter(LocalDateTime.now().minusDays(7))) {
+                session.setLastActiveDate(LocalDateTime.now());
+                sessionRepo.save(session);
+                return Optional.of(session);
+            } else {
+                sessionRepo.delete(session);
+                return Optional.empty();
+            }
+        } else {
+            L.info("session is not present for user "+u.getId());
+            return Optional.empty();
+        }
+    }
     public Optional<Session> isUserLoggedIn(String sessionKey) {
         Optional<Session> s = sessionRepo.findBySessionKey(sessionKey);
         if (s.isPresent()) {
