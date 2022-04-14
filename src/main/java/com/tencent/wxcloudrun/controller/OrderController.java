@@ -204,7 +204,7 @@ public class OrderController {
         }
         else {
             order.setOption(newOption);
-            order.setTargetTime(LocalDateTime.parse(body.getString("targetTime")));
+            order.setTargetTime(LocalDateTime.parse(body.getString("targetTime").replace(" ","T")));
         }
         if(order.getId() == 0){
             order.setStatus(OrderStatus.created);
