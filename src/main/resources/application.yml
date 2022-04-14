@@ -17,7 +17,7 @@ spring:
     hikari:
       maxLifetime:18000
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://sh-cynosdbmysql-grp-rr5vyhp0.sql.tencentcdb.com:22489/baraka_logistics&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://sh-cynosdbmysql-grp-rr5vyhp0.sql.tencentcdb.com:22489/baraka_logistics?serverTimezone=Asia/Shanghai
     username: root
     password: B6Yp9F9m
     tomcat:
