@@ -39,16 +39,15 @@ public class OrderController {
 
 
     @GetMapping("/list")
-    public ApiResponse orderList(@RequestParam(name = "session") String session, @RequestParam(name="date",required = false) String dateStr, @RequestParam(name="status",required = false) String stat){
+    public ApiResponse orderList(@RequestParam(name = "session") String session, @RequestParam(name="date",required = false) String dateStr, @RequestParam(name="status",required = false) int stat){
         Optional<LocalDateTime> date = Optional.empty();
         if(!( dateStr  == null || dateStr.length() == 0)){
            date = Optional.of(LocalDateTime.parse(dateStr));
        }
         Optional<OrderStatus> status = Optional.empty();
-        if(!(stat == null || stat.length() == 0))
-        {
-            status = Optional.of(OrderStatus.from(Integer.parseInt(stat)));
-        }
+        if(stat != -1)
+            status = Optional.of(OrderStatus.from(stat));
+
         Optional<Session> sop = userService.isUserLoggedIn(session);
         if(!sop.isPresent()){
             return ApiResponse.error("请先登录");
