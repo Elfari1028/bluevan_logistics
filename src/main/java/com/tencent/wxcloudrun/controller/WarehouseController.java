@@ -113,7 +113,7 @@ public class WarehouseController {
         List<String> retlist = new ArrayList<String>();
         for (Pair<LocalDateTime,LocalDateTime> p:
              list) {
-            retlist.add(p.getFirst().toString().replace("T"," ") + p.getSecond().toString().substring(11));
+            retlist.add(p.getFirst().toString().replace("T"," ") + "~" +  p.getSecond().toString().substring(11));
         }
         Optional<Warehouse> houseOp = warehouseService.findById(id);
         if (!houseOp.isPresent()) {
