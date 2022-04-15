@@ -12,7 +12,7 @@ spring:
 #    username: ${MYSQL_USERNAME}
 #    password: ${MySQL_PASSWORD}
   jackson:
-    time-zone: Asia/Shanghai
+    time-zone: GMT+8
   datasource:
     hikari:
       maxLifetime:18000
