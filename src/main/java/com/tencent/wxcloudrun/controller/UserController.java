@@ -17,6 +17,10 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.logging.LoggingSystem;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpRequest;
 import org.springframework.web.bind.annotation.*;
 
@@ -192,31 +196,43 @@ public class UserController {
     }
 
     @GetMapping("/list")
-    public ApiResponse listAll(@RequestParam(name = "session") String session) {
+    public ApiResponse listAll(
+            @RequestParam(name = "session") String session,
+            @RequestParam(required = false,name = "role") int role,
+            @RequestParam(required = false,name = "page") Integer page,
+            @RequestParam(required = false,name = "pageSize",defaultValue = "20") int pageSize,
+            @RequestParam(required = false, name = "keyword") String keyword
+    ) {
         Optional<Session> s = userService.isUserLoggedIn(session);
+        JSONObject ret= new JSONObject();
         if (!s.isPresent()) {
             return ApiResponse.error("请先登录");
         }
-        JSONArray data = new JSONArray();
-        Iterable<User> list = userService.getAllUsers();
-        for (User u : list) {
-            JSONObject user = new JSONObject();
-            user.put("phone", u.getPhone());
-            user.put("avatar", u.getWxAvatarUrl());
-            user.put("wxUnionId", u.getWxUnionId());
-            user.put("name", u.getName());
-            user.put("role", u.getRole().value);
-            if (u.getWarehouse() != null) {
-                JSONObject warehouse = new JSONObject();
-                warehouse.put("name", u.getWarehouse().getName());
-                warehouse.put("description", u.getWarehouse().getDescription());
-                warehouse.put("id", u.getWarehouse().getId());
-                warehouse.put("location", u.getWarehouse().getLocation().jsonObjectify());
-                user.put("warehouse", warehouse);
+        if(keyword == null)keyword = "";
+        L.info("keyword:"+keyword);
+        if(page == null || page < 0 ){
+            Iterable<User> list = null;
+            if(role == 0){
+                list = userService.userRepo.findAllByWxNameContaining(keyword);
             }
-            data.add(user);
+            else{
+                list = userService.userRepo.findAllByWxNameContainingAndRole(keyword,UserRole.of(role).value);
+            }
+
+            return ApiResponse.ok(userService.usersToJsonArray(list));
         }
-        return ApiResponse.ok(data);
+        else {
+            Page result;
+            if(role == 0){
+              result = userService.userRepo.findAllByWxNameContaining(keyword,PageRequest.of(page,pageSize));
+            }
+            else {
+                result = userService.userRepo.findAllByWxNameContainingAndRole(keyword, UserRole.of(role).value,PageRequest.of(page,pageSize));
+            }
+            L.info("page: " +page+ "  total:" + result.getTotalPages());
+            return ApiResponse.ok(userService.usersToJsonArray(result)).paged(result.getPageable().getPageSize(), result.getPageable().getPageNumber(),result.getTotalPages());
+        }
+
     }
 }
 

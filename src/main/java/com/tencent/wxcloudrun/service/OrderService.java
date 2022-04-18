@@ -1,18 +1,34 @@
 package com.tencent.wxcloudrun.service;
 
+import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.Order;
 import com.tencent.wxcloudrun.model.User;
+import com.tencent.wxcloudrun.model.Warehouse;
 import com.tencent.wxcloudrun.model.util.OrderStatus;
 import com.tencent.wxcloudrun.repo.OrderRepo;
 import com.tencent.wxcloudrun.repo.UserRepo;
 import com.tencent.wxcloudrun.repo.WarehouseRepo;
+import org.hibernate.Session;
+import org.hibernate.cache.spi.support.AbstractReadWriteAccess;
+import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Date;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -20,13 +36,15 @@ public class OrderService {
     final private UserRepo userRepo;
     final private WarehouseRepo warehouseRepo;
     final private OrderRepo orderRepo;
+    @PersistenceContext
+    private EntityManager em;
     public OrderService(@Autowired UserRepo userRepo, @Autowired WarehouseRepo warehouseRepo,@Autowired OrderRepo orderRepo) {
         this.userRepo = userRepo;
         this.warehouseRepo = warehouseRepo;
         this.orderRepo = orderRepo;
     }
 
-    public Iterable<Order> getListByParams(Optional<LocalDateTime> date, Optional<OrderStatus> status, User user) {
+    public Iterable<Order> getListByParams(Optional<LocalDateTime> date, Optional<OrderStatus> status, User user, Pageable pageable) {
         if(date.isPresent()){
             LocalDateTime end = date.get().plusDays(1);
             if(status.isPresent()){
@@ -89,6 +107,52 @@ public class OrderService {
                 default:return null;
             }
         }
+    }
+
+    public Page<Order> queryOrders(
+            Integer warehouseId,
+            String receiverId,
+            Integer orderId,
+            Integer creatorId,
+            Integer status,
+            LocalDateTime targetDate,
+            LocalDateTime creationDate,
+            Pageable pageable){
+
+        Session session = em.unwrap(Session.class);
+        CriteriaBuilder builder = session.getCriteriaBuilder();
+        CriteriaQuery<Order> cr = builder.createQuery(Order.class);
+        Root<Order> root = cr.from(Order.class);
+        List<Predicate> predicates = new ArrayList<Predicate>();
+        if(warehouseId != null)
+            predicates.add(builder.equal(root.get("targetWarehouse").get("id"),warehouseId));
+        if(orderId != null)
+            predicates.add(builder.equal(root.get("id"),orderId));
+        if(receiverId != null)
+            predicates.add(builder.like(root.get("receiverId"),receiverId));
+        if(status != null)
+            predicates.add(builder.equal(root.get("status"),status));
+        if(creatorId != null)
+            predicates.add(builder.equal(root.get("creator").get("id"),creatorId));
+//        if(creationDate != null)
+//            predicates.add(builder.between(root.get("creationDate"),creationDate.withHour(0).withMinute(0),creationDate.withHour(23).withMinute(59)));
+//        if(targetDate != null) {
+//            L.info(root.get("targetTime").getJavaType().getName());
+////            predicates.add(builder.greaterThanOrEqualTo(root.get("targetTime"),targetDate));
+//            predicates.add(builder.between(root.get("targetTime"),builder.literal(targetDate) , builder.literal(targetDate.plusDays(1))));
+//        }
+        Predicate[] predArray = new Predicate[predicates.size()];
+        predicates.toArray(predArray);
+        cr.select(root).where(predArray);
+
+        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
+        Root<Order> orderCount = countQuery.from(Order.class);
+        countQuery.select(builder.count(orderCount)).where(predArray);
+        Long count = session.createQuery(countQuery).getSingleResult();
+
+        Query<Order> query = session.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int)pageable.getOffset());
+        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, count);
+        return pagedResults;
     }
 
     public Order saveOrder(Order order) {

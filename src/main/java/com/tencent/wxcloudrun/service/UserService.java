@@ -1,5 +1,7 @@
 package com.tencent.wxcloudrun.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.Session;
@@ -21,7 +23,7 @@ import java.util.UUID;
 @Service
 public class UserService {
 
-    private UserRepo userRepo;
+    public UserRepo userRepo;
 
     private SessionRepo sessionRepo;
 
@@ -108,12 +110,32 @@ public class UserService {
         return userRepo.findByWxUnionId(id);
     }
 
-    public Iterable<User> getAllUsers() {
-        return userRepo.findAll();
-//        return Lists.newArrayList(userRepo.findAll());
-    }
-
     public void saveEditedUser(User user){
         userRepo.save(user);
+    }
+
+    public Iterable<User> getAllUsersOfRole(UserRole role) {
+       return userRepo.findAllByRole(role.value);
+    }
+
+    public JSONArray usersToJsonArray(Iterable<User> users){
+        JSONArray userList = new JSONArray();
+        for (User u : users) {
+            JSONObject user = new JSONObject();
+            user.put("phone", u.getPhone());
+            user.put("avatar", u.getWxAvatarUrl());
+            user.put("wxUnionId", u.getWxUnionId());
+            user.put("name", u.getName());
+            user.put("role", u.getRole().value);
+            if (u.getWarehouse() != null) {
+                JSONObject warehouse = new JSONObject();
+                warehouse.put("name", u.getWarehouse().getName());
+                warehouse.put("description", u.getWarehouse().getDescription());
+                warehouse.put("id", u.getWarehouse().getId());
+                warehouse.put("location", u.getWarehouse().getLocation().jsonObjectify());
+                user.put("warehouse", warehouse);
+            }
+            userList.add(user);}
+        return userList;
     }
 }
