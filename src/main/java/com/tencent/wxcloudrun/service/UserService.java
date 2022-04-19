@@ -41,7 +41,7 @@ public class UserService {
     public final String secret = "20e3c200fdaf433818d44c1434714988";
     public final String msgCreationNoticeTemplate = "nRK8CvemTqeSb5VLGaPdciHZl0rLBgF3BqxsQ251HPA";
     public final String msgStatusNoticeTemplate = "wTaj_TAHqRewG-VzGx7k1d4KXq-TnJ1lbVF3WTu7W2E";
-    public final String msgReceiveNoticeTemplate = "nRK8CvemTqeSb5VLGaPdctVmLol53f5Z62x8_TDGI3c";
+    public final String msgReceiveNoticeTemplate = "skpDKmBtroUTHbWNDpMt_l8cUiMD_t23c7rnKCnwELE";
 
 
     public UserService(@Autowired UserRepo userRepo, @Autowired SessionRepo sessionRepo) {
@@ -235,7 +235,7 @@ public class UserService {
             ObjectMapper mapper = new ObjectMapper();
             HashMap response = client.execute(request, httpResponse ->
                     mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
-            L.info("sendCreationMsgResponse:"+response.toString());
+            L.info("sendStatusChange:"+response.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -265,7 +265,7 @@ public class UserService {
             ObjectMapper mapper = new ObjectMapper();
             HashMap response = client.execute(request, httpResponse ->
                     mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
-            L.info("sendCreationMsgResponse:"+response.toString());
+            L.info("sendArrival:"+response.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
