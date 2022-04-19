@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 @RestController
 @RequestMapping("/order")
@@ -206,7 +207,11 @@ public class OrderController {
         warehouse.put("id", order.getTargetWarehouse().getId());
         warehouse.put("description", order.getTargetWarehouse().getDescription());
         object.put("warehouse", warehouse);
-        object.put("cargos", order.getCargos());
+        List<JSONObject> cgs = new ArrayList<>();
+        for (Cargo cargo: order.getCargos()) {
+            cgs.add(cargo.toJSON());
+        }
+        object.put("cargos", cgs);
         object.put("receiverId", order.getReceiverId());
         object.put("creationDate", order.getCreationDate());
         object.put("option", order.getOption());
@@ -288,6 +293,7 @@ public class OrderController {
         order.setSenderPhone(body.getString("senderPhone")); // 3
         order.setReceiverId(body.getString("receiverId")); // 4
         List<JSONObject> rawList = body.getJSONArray("cargos").toJavaList(JSONObject.class);
+        L.info(body.getJSONArray("cargos").toString());
         List<Cargo> list = new ArrayList<Cargo>();
         for (JSONObject jsonObject : rawList) {
             list.add(Cargo.objectify(jsonObject.toString()));
