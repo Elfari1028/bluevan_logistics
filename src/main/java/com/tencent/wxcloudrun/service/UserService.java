@@ -72,9 +72,19 @@ public class UserService {
     }
 
     public Optional<Session> findValidSessionForUser(User u){
-        Optional<Session> s = sessionRepo.findByUser(u);
-        if (s.isPresent()) {
-            Session session = s.get();
+        List<Session> slist = sessionRepo.findByUser(u);
+        Session s = null;
+        if(slist.size() > 1){
+            for (int i = 0 ; i < slist.size() - 1; i ++) {
+                sessionRepo.delete(slist.get(i));
+            }
+            s = slist.get(slist.size() - 1);
+        }
+       else if(slist.size() == 1){
+          s = slist.get(0);
+       }
+        if (s!=null) {
+            Session session = s;
             if (session.getLastActiveDate().isAfter(LocalDateTime.now().minusDays(7))) {
                 session.setLastActiveDate(LocalDateTime.now());
                 sessionRepo.save(session);
