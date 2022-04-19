@@ -176,7 +176,7 @@ public class UserService {
             data.put("character_string1",key);
             key = new JSONObject(); key.put("value",order.getReceiverId());
             data.put("thing4",key);
-            key = new JSONObject(); key.put("value",order.getNote());
+            key = new JSONObject(); key.put("value",order.getNote().length() > 19 ? order.getNote().substring(0,16) + "..." : order.getNote());
             data.put("thing6",key);
             key = new JSONObject(); key.put("value",order.getTargetWarehouse().getName());
             data.put("thing8",key);
@@ -251,9 +251,15 @@ public class UserService {
             data.put("character_string2",key);
             key = new JSONObject(); key.put("value",order.getReceiverId());
             data.put("thing4",key);
-            key = new JSONObject(); key.put("value",order.getNote());
+            String note = order.getNote();
+            if(note.length() > 16) note = note.substring(0,16) + "...";
+            key = new JSONObject(); key.put("value",note);
             data.put("thing6",key);
-            key = new JSONObject(); key.put("value","\"" + order.getCargos().get(0).getName()+"\"等"+order.getCargos().size()+"种货物");
+            String name = order.getCargos().get(0).getName();
+            if(name.length() > 12){
+                name = name.substring(0,12);
+            }
+            key = new JSONObject(); key.put("value","\"" +name +"\"等"+order.getCargos().size()+"种货物");
             data.put("thing7",key);
             key = new JSONObject(); key.put("value",order.getArrivalTime().toLocalDate().toString());
             data.put("time3",key);

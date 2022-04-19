@@ -14,6 +14,7 @@ import org.hibernate.query.Query;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -36,52 +37,52 @@ public class OrderService {
     final private OrderRepo orderRepo;
     @PersistenceContext
     private EntityManager em;
-    public OrderService(@Autowired UserRepo userRepo, @Autowired WarehouseRepo warehouseRepo,@Autowired OrderRepo orderRepo) {
+
+    public OrderService(@Autowired UserRepo userRepo, @Autowired WarehouseRepo warehouseRepo, @Autowired OrderRepo orderRepo) {
         this.userRepo = userRepo;
         this.warehouseRepo = warehouseRepo;
         this.orderRepo = orderRepo;
     }
 
     public Iterable<Order> getListByParams(Optional<LocalDateTime> date, Optional<OrderStatus> status, User user, Pageable pageable) {
-        if(date.isPresent()){
+        if (date.isPresent()) {
             LocalDateTime end = date.get().plusDays(1);
-            if(status.isPresent()){
+            if (status.isPresent()) {
                 // both
-                switch (user.getRole()){
+                switch (user.getRole()) {
                     case user:
                     case driver:
-                        return orderRepo.findAllByCreatorAndStatusEqualsAndCreationDateBetween(user,status.get().value,date.get(),end);
+                        return orderRepo.findAllByCreatorAndStatusEqualsAndCreationDateBetween(user, status.get().value, date.get(), end);
                     case warehouse_manager:
                     case warehouse_worker:
-                        return orderRepo.findAllByTargetWarehouseAndStatusEqualsAndCreationDateBetween(user.getWarehouse(),status.get().value,date.get(),end);
+                        return orderRepo.findAllByTargetWarehouseAndStatusEqualsAndCreationDateBetween(user.getWarehouse(), status.get().value, date.get(), end);
                     case platform_manager:
-                        return orderRepo.findAllByStatusEqualsAndCreationDateBetween(status.get().value,date.get(),end);
+                        return orderRepo.findAllByStatusEqualsAndCreationDateBetween(status.get().value, date.get(), end);
                     default:
                         return null;
                 }
-            }
-            else {
-              // only date
-                switch (user.getRole()){
+            } else {
+                // only date
+                switch (user.getRole()) {
                     case user:
                     case driver:
-                        return orderRepo.findAllByCreatorAndCreationDateBetween(user,date.get(),end);
+                        return orderRepo.findAllByCreatorAndCreationDateBetween(user, date.get(), end);
                     case platform_manager:
-                        return orderRepo.findAllByCreationDateBetween(date.get(),end);
+                        return orderRepo.findAllByCreationDateBetween(date.get(), end);
                     case warehouse_worker:
                     case warehouse_manager:
-                        return orderRepo.findAllByTargetWarehouseAndCreationDateBetween(user.getWarehouse(),date.get(),end);
+                        return orderRepo.findAllByTargetWarehouseAndCreationDateBetween(user.getWarehouse(), date.get(), end);
                     default:
                         return null;
                 }
             }
         }
-        if(status.isPresent()){
+        if (status.isPresent()) {
             // only status
-            switch (user.getRole()){
+            switch (user.getRole()) {
                 case user:
                 case driver:
-                    return orderRepo.findAllByCreatorAndStatusEquals(user,status.get().value);
+                    return orderRepo.findAllByCreatorAndStatusEquals(user, status.get().value);
                 case warehouse_manager:
                 case warehouse_worker:
                     return orderRepo.findAllByTargetWarehouseAndStatusEquals(user.getWarehouse(), status.get().value);
@@ -90,10 +91,9 @@ public class OrderService {
                 default:
                     return null;
             }
-        }
-        else {
+        } else {
             // none
-            switch (user.getRole()){
+            switch (user.getRole()) {
                 case user:
                 case driver:
                     return orderRepo.findAllByCreator(user);
@@ -102,7 +102,8 @@ public class OrderService {
                     return orderRepo.findAllByTargetWarehouse(user.getWarehouse());
                 case platform_manager:
                     return orderRepo.findAll();
-                default:return null;
+                default:
+                    return null;
             }
         }
     }
@@ -115,7 +116,7 @@ public class OrderService {
             Integer status,
             LocalDateTime targetDate,
             LocalDateTime creationDate,
-            Pageable pageable){
+            Pageable pageable) {
 
 //        Session session = em.unwrap(Session.class);
         CriteriaBuilder builder = em.getCriteriaBuilder();
@@ -123,24 +124,24 @@ public class OrderService {
         Root<Order> root = cr.from(Order.class);
 
         List<Predicate> predicates = new ArrayList<Predicate>();
-        if(warehouseId != null){
+        if (warehouseId != null) {
             Optional<Warehouse> warehouse = warehouseRepo.findById(warehouseId);
-            predicates.add(builder.equal(root.join("targetWarehouse"),warehouse.get()));
+            predicates.add(builder.equal(root.join("targetWarehouse"), warehouse.get()));
         }
-        if(orderId != null)
-            predicates.add(builder.equal(root.get("id"),orderId));
-        if(receiverId != null)
-            predicates.add(builder.like(root.get("receiverId"),receiverId));
-        if(status != null)
-            predicates.add(builder.equal(root.get("status"),status));
-        if(creatorId != null)
-            predicates.add(builder.equal(root.get("creator").get("id"),creatorId));
+        if (orderId != null)
+            predicates.add(builder.equal(root.get("id"), orderId));
+        if (receiverId != null)
+            predicates.add(builder.like(root.get("receiverId"), receiverId));
+        if (status != null)
+            predicates.add(builder.equal(root.get("status"), status));
+        if (creatorId != null)
+            predicates.add(builder.equal(root.get("creator").get("id"), creatorId));
 //        if(creationDate != null)
 //            predicates.add(builder.between(root.get("creationDate"),creationDate.withHour(0).withMinute(0),creationDate.withHour(23).withMinute(59)));
-        if(targetDate != null) {
+        if (targetDate != null) {
             L.info(root.get("targetTime").getJavaType().getName());
 //            predicates.add(builder.greaterThanOrEqualTo(root.get("targetTime"),targetDate));
-            predicates.add(builder.between(root.get("targetTime"),builder.literal(targetDate) , builder.literal(targetDate.plusDays(1))));
+            predicates.add(builder.between(root.get("targetTime"), builder.literal(targetDate), builder.literal(targetDate.plusDays(1))));
         }
         Predicate[] predArray = new Predicate[predicates.size()];
         predicates.toArray(predArray);
@@ -151,23 +152,27 @@ public class OrderService {
 //        CriteriaBuilder qb = em.getCriteriaBuilder();
 //        CriteriaQuery<Long> cq = qb.createQuery(Long.class);
 //        cq.select(qb.count(cq.from(Order.class))).where(predArray);
-        int count = em.createQuery(cr).getResultList().size();
-        TypedQuery<Order> query = em.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int)pageable.getOffset());
-        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, count);
-        return pagedResults;
+        if (pageable != null) {
+            int count = em.createQuery(cr).getResultList().size();
+            TypedQuery<Order> query = em.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int) pageable.getOffset());
+            Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, count);
+            return pagedResults;
+        } else {
+            List<Order> res = em.createQuery(cr).getResultList();
+            return new PageImpl<>(res, PageRequest.of(1, res.size()), res.size());
+        }
     }
 
     public Order saveOrder(Order order) {
-       if(order.getId() == 0){
-           order.setCreationDate(LocalDateTime.now());
-       }
-       else {
-           order.setLastModifiedDate(LocalDateTime.now());
-       }
+        if (order.getId() == 0) {
+            order.setCreationDate(LocalDateTime.now());
+        } else {
+            order.setLastModifiedDate(LocalDateTime.now());
+        }
         return orderRepo.save(order);
     }
 
-    public Optional<Order> getById(int id){
+    public Optional<Order> getById(int id) {
         return orderRepo.findById(id);
     }
 }
