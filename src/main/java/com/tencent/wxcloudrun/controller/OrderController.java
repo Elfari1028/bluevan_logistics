@@ -133,6 +133,7 @@ public class OrderController {
                 whId = user.getWarehouse().getId();
                 break;
             case platform_manager:
+                whId = warehouseId <= 0 ? null : warehouseId;
                 break;
         }
         orders = orderService.queryOrders(
