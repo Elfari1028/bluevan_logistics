@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -104,6 +105,8 @@ public class OrderController {
             @RequestParam(name = "warehouseId", required = false, defaultValue = "-1") Integer warehouseId,
             @RequestParam(name = "orderId", required = false, defaultValue = "-1") Integer orderId
     ) {
+        LocalDateTime timer = LocalDateTime.now();
+        Long interval = 0L;
         LocalDateTime creationDatetime = null;
         LocalDateTime targetDateTime = null;
         if (!(creationDate == null || creationDate.length() == 0)) {
@@ -116,6 +119,9 @@ public class OrderController {
         if (!sop.isPresent()) {
             return ApiResponse.error("请先登录");
         }
+
+        interval = (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - timer.toEpochSecond(ZoneOffset.UTC));
+        L.info("check took time:"+interval.toString());
 
         User user = sop.get().getUser();
         Page<Order> orders;
@@ -136,6 +142,8 @@ public class OrderController {
                 whId = warehouseId <= 0 ? null : warehouseId;
                 break;
         }
+        interval = (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - timer.toEpochSecond(ZoneOffset.UTC));
+        L.info("prep took time:"+interval.toString());
         orders = orderService.queryOrders(
                 whId,
                 receiverId,
@@ -146,7 +154,8 @@ public class OrderController {
                 creationDatetime,
                 PageRequest.of(page, pageSize)
         );
-        L.info("test - test");
+        interval = (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - timer.toEpochSecond(ZoneOffset.UTC));
+        L.info("query took time:"+interval.toString());
         List<JSONObject> ret = new ArrayList<>();
         for (Order order :
                 orders) {
@@ -170,6 +179,8 @@ public class OrderController {
             object.put("note", order.getNote());
             ret.add(object);
         }
+        interval = (LocalDateTime.now().toEpochSecond(ZoneOffset.UTC) - timer.toEpochSecond(ZoneOffset.UTC));
+        L.info("total took time:"+interval.toString());
         return ApiResponse.ok(ret).paged(pageSize,page,orders.getTotalPages());
     }
 

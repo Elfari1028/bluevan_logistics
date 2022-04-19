@@ -19,10 +19,8 @@ import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.*;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -119,13 +117,16 @@ public class OrderService {
             LocalDateTime creationDate,
             Pageable pageable){
 
-        Session session = em.unwrap(Session.class);
-        CriteriaBuilder builder = session.getCriteriaBuilder();
+//        Session session = em.unwrap(Session.class);
+        CriteriaBuilder builder = em.getCriteriaBuilder();
         CriteriaQuery<Order> cr = builder.createQuery(Order.class);
         Root<Order> root = cr.from(Order.class);
+
         List<Predicate> predicates = new ArrayList<Predicate>();
-        if(warehouseId != null)
-            predicates.add(builder.equal(root.get("targetWarehouse").get("id"),warehouseId));
+        if(warehouseId != null){
+            Optional<Warehouse> warehouse = warehouseRepo.findById(warehouseId);
+            predicates.add(builder.equal(root.join("targetWarehouse"),warehouse.get()));
+        }
         if(orderId != null)
             predicates.add(builder.equal(root.get("id"),orderId));
         if(receiverId != null)
@@ -136,22 +137,16 @@ public class OrderService {
             predicates.add(builder.equal(root.get("creator").get("id"),creatorId));
 //        if(creationDate != null)
 //            predicates.add(builder.between(root.get("creationDate"),creationDate.withHour(0).withMinute(0),creationDate.withHour(23).withMinute(59)));
-//        if(targetDate != null) {
-//            L.info(root.get("targetTime").getJavaType().getName());
-////            predicates.add(builder.greaterThanOrEqualTo(root.get("targetTime"),targetDate));
-//            predicates.add(builder.between(root.get("targetTime"),builder.literal(targetDate) , builder.literal(targetDate.plusDays(1))));
-//        }
+        if(targetDate != null) {
+            L.info(root.get("targetTime").getJavaType().getName());
+//            predicates.add(builder.greaterThanOrEqualTo(root.get("targetTime"),targetDate));
+            predicates.add(builder.between(root.get("targetTime"),builder.literal(targetDate) , builder.literal(targetDate.plusDays(1))));
+        }
         Predicate[] predArray = new Predicate[predicates.size()];
         predicates.toArray(predArray);
-        cr.select(root).where(predArray);
-
-        CriteriaQuery<Long> countQuery = builder.createQuery(Long.class);
-        Root<Order> orderCount = countQuery.from(Order.class);
-        countQuery.select(builder.count(orderCount)).where(predArray);
-        Long count = session.createQuery(countQuery).getSingleResult();
-
-        Query<Order> query = session.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int)pageable.getOffset());
-        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, count);
+        cr.select(root).where(predArray).orderBy(builder.desc(root.get("id")));
+        TypedQuery<Order> query = em.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int)pageable.getOffset());
+        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, query.getResultList().size());
         return pagedResults;
     }
 

@@ -59,7 +59,7 @@ public class UserService {
             return Optional.empty();
         }
 
-        Optional<Session> s = isUserLoggedIn(user.getWxUnionId());
+        Optional<Session> s = findValidSessionForUser(user);
         if (s.isPresent()) {
             return s;
         }
