@@ -144,9 +144,16 @@ public class OrderService {
         }
         Predicate[] predArray = new Predicate[predicates.size()];
         predicates.toArray(predArray);
+
+
         cr.select(root).where(predArray).orderBy(builder.desc(root.get("id")));
+
+        CriteriaBuilder qb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = qb.createQuery(Long.class);
+        cq.select(qb.count(cq.from(Order.class))).where(predArray);
+        Long count = em.createQuery(cq).getSingleResult();
         TypedQuery<Order> query = em.createQuery(cr).setMaxResults(pageable.getPageSize()).setFirstResult((int)pageable.getOffset());
-        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, query.getResultList().size());
+        Page<Order> pagedResults = new PageImpl<>(query.getResultList(), pageable, count);
         return pagedResults;
     }
 
