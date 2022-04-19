@@ -2,23 +2,32 @@ package com.tencent.wxcloudrun.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
+import com.tencent.wxcloudrun.config.ApiResponse;
 import com.tencent.wxcloudrun.config.L;
+import com.tencent.wxcloudrun.model.Order;
 import com.tencent.wxcloudrun.model.Session;
 import com.tencent.wxcloudrun.model.User;
 import com.tencent.wxcloudrun.model.util.UserRole;
 import com.tencent.wxcloudrun.repo.SessionRepo;
 import com.tencent.wxcloudrun.repo.UserRepo;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.FileInputStream;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+
 
 @Service
 public class UserService {
@@ -26,6 +35,12 @@ public class UserService {
     public UserRepo userRepo;
 
     private SessionRepo sessionRepo;
+
+    public final String appId ="wx3fb342c39ddf2cd7";
+    public final String secret = "20e3c200fdaf433818d44c1434714988";
+    public final String msgCreationNoticeTemplate = "nRK8CvemTqeSb5VLGaPdciHZl0rLBgF3BqxsQ251HPA";
+    public final String msgStatusNoticeTemplate = "wTaj_TAHqRewG-VzGx7k1d4KXq-TnJ1lbVF3WTu7W2E";
+    public final String msgReceiveNoticeTemplate = "nRK8CvemTqeSb5VLGaPdctVmLol53f5Z62x8_TDGI3c";
 
 
     public UserService(@Autowired UserRepo userRepo, @Autowired SessionRepo sessionRepo) {
@@ -148,4 +163,34 @@ public class UserService {
             userList.add(user);}
         return userList;
     }
+
+    public void sendCreationMessage( Order order){
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
+            JSONObject body = new JSONObject();
+            body.put("touser",order.getCreator().getWxUserId());
+            body.put("template_id",msgCreationNoticeTemplate);
+            JSONObject data = new JSONObject();
+            data.put("character_string1",order.getId());
+            data.put("thing4",order.getReceiverId());
+            data.put("thing6",order.getNote());
+            data.put("thing8",order.getTargetWarehouse().getName());
+            data.put("time7",order.getTargetTime().toLocalDate().toString());
+            body.put("data",data);
+            StringEntity requestEntity = new StringEntity(
+                    body.toString(),
+                    ContentType.APPLICATION_JSON);
+            request.setEntity(requestEntity);
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap response = client.execute(request, httpResponse ->
+                    mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
+            L.info("sendCreationMsgResponse:"+response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+
+
 }
+

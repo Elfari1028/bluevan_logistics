@@ -324,6 +324,9 @@ public class OrderController {
             order.setStatus(OrderStatus.locked);
         }
         order = orderService.saveOrder(order);
+        if(order.getStatus() == OrderStatus.created){
+            userService.sendCreationMessage(order);
+        }
         JSONObject ret = new JSONObject();
         ret.put("orderId", order.getId());
         return ApiResponse.ok(ret);
