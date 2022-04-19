@@ -364,7 +364,13 @@ public class OrderController {
                 return ApiResponse.error("没有权限");
         }
         order.setStatus(newStatus);
-        orderService.saveOrder(order);
+        if(newStatus == OrderStatus.delivered){
+            order.setArrivalTime(LocalDateTime.now());
+        }
+        order = orderService.saveOrder(order);
+        if(newStatus == OrderStatus.delivered){
+            userService.sendArrival(order);
+        }
         return ApiResponse.ok();
     }
 

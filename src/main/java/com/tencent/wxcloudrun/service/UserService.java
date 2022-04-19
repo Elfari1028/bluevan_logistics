@@ -9,6 +9,7 @@ import com.tencent.wxcloudrun.config.L;
 import com.tencent.wxcloudrun.model.Order;
 import com.tencent.wxcloudrun.model.Session;
 import com.tencent.wxcloudrun.model.User;
+import com.tencent.wxcloudrun.model.util.OrderStatus;
 import com.tencent.wxcloudrun.model.util.UserRole;
 import com.tencent.wxcloudrun.repo.SessionRepo;
 import com.tencent.wxcloudrun.repo.UserRepo;
@@ -179,8 +180,83 @@ public class UserService {
             data.put("thing6",key);
             key = new JSONObject(); key.put("value",order.getTargetWarehouse().getName());
             data.put("thing8",key);
-            key = new JSONObject(); key.put("value",order.getTargetTime().toLocalDate().toString();
+            key = new JSONObject(); key.put("value",order.getTargetTime().toLocalDate().toString());
             data.put("time7",key);
+            body.put("data",data);
+            StringEntity requestEntity = new StringEntity(
+                    body.toString(),
+                    ContentType.APPLICATION_JSON);
+            request.setEntity(requestEntity);
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap response = client.execute(request, httpResponse ->
+                    mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
+            L.info("sendCreationMsgResponse:"+response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void sendStatusChange(Order order){
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
+            JSONObject body = new JSONObject();
+            body.put("touser",order.getCreator().getWxUserId());
+            body.put("template_id",msgStatusNoticeTemplate);
+            JSONObject data = new JSONObject();
+            JSONObject key = new JSONObject(); key.put("value",order.getId());
+            data.put("character_string1",key);
+            OrderStatus status = order.getStatus();
+        String phrase = null;
+        String note = null;
+        switch (status){
+            case created:
+                return;
+            case canceled:
+                phrase = "已取消";
+                note = "取消后无法再次开启，若需操作请您重新下单";
+                break;
+            case locked:
+                phrase = "已锁定";
+                note = "本订单已由管理员修改内容，因此已被锁定。请查看订单核实，如需再次修改请联系管理员";
+                break;
+            case delivered:
+                sendArrival(order);
+                return ;
+        }
+            key = new JSONObject(); key.put("value",phrase);
+            data.put("phrase2",key);
+            key = new JSONObject(); key.put("value",note);
+            data.put("thing3",key);
+            body.put("data",data);
+            StringEntity requestEntity = new StringEntity(
+                    body.toString(),
+                    ContentType.APPLICATION_JSON);
+            request.setEntity(requestEntity);
+            ObjectMapper mapper = new ObjectMapper();
+            HashMap response = client.execute(request, httpResponse ->
+                    mapper.readValue(httpResponse.getEntity().getContent(), HashMap.class));
+            L.info("sendCreationMsgResponse:"+response.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void sendArrival( Order order){
+        try (CloseableHttpClient client = HttpClients.createDefault()) {
+            HttpPost request = new HttpPost("https://api.weixin.qq.com/cgi-bin/message/subscribe/send");
+            JSONObject body = new JSONObject();
+            body.put("touser",order.getCreator().getWxUserId());
+            body.put("template_id",msgReceiveNoticeTemplate);
+            JSONObject data = new JSONObject();
+            JSONObject key = new JSONObject(); key.put("value",order.getId());
+            data.put("character_string2",key);
+            key = new JSONObject(); key.put("value",order.getReceiverId());
+            data.put("thing4",key);
+            key = new JSONObject(); key.put("value",order.getNote());
+            data.put("thing6",key);
+            key = new JSONObject(); key.put("value","\"" + order.getCargos().get(0).getName()+"\"等"+order.getCargos().size()+"种货物");
+            data.put("thing7",key);
+            key = new JSONObject(); key.put("value",order.getArrivalTime().toLocalDate().toString());
+            data.put("time3",key);
             body.put("data",data);
             StringEntity requestEntity = new StringEntity(
                     body.toString(),

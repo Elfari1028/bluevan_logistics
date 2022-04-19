@@ -27,6 +27,8 @@ public class Order extends ModelBase implements Serializable {
     @Column(name = "order_option")
     private int option; // 0 auto 1 system
     private LocalDateTime targetTime;
+    private LocalDateTime arrivalTime;
+
     private String receiverId;
     private String cargos; //jsonfied data of cargos;
 
@@ -128,6 +130,14 @@ public class Order extends ModelBase implements Serializable {
 
     public void setNote(String note) {
         this.note = note;
+    }
+
+    public LocalDateTime getArrivalTime() {
+        return arrivalTime;
+    }
+
+    public void setArrivalTime(LocalDateTime arrivalTime) {
+        this.arrivalTime = arrivalTime;
     }
 }
 
