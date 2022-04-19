@@ -248,6 +248,7 @@ public class OrderController {
         Order order = new Order();
 
         order.setCreator(creator);  // 1
+        order.setCreationDate(LocalDateTime.now());
         return setOrderData(body, order, creator);
     }
 
@@ -264,6 +265,7 @@ public class OrderController {
             return ApiResponse.error("订单不存在");
         }
         Order order = ord.get();
+        order.setLastModifiedDate(LocalDateTime.now());
 //        Optional<Warehouse> wh = warehouseService.findById(body.getIntValue("id"));
         switch (sop.get().getUser().getRole()) {
             case user:
