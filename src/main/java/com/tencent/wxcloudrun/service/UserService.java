@@ -171,11 +171,16 @@ public class UserService {
             body.put("touser",order.getCreator().getWxUserId());
             body.put("template_id",msgCreationNoticeTemplate);
             JSONObject data = new JSONObject();
-            data.put("character_string1",order.getId());
-            data.put("thing4",order.getReceiverId());
-            data.put("thing6",order.getNote());
-            data.put("thing8",order.getTargetWarehouse().getName());
-            data.put("time7",order.getTargetTime().toLocalDate().toString());
+            JSONObject key = new JSONObject(); key.put("value",order.getId());
+            data.put("character_string1",key);
+            key = new JSONObject(); key.put("value",order.getReceiverId());
+            data.put("thing4",key);
+            key = new JSONObject(); key.put("value",order.getNote());
+            data.put("thing6",key);
+            key = new JSONObject(); key.put("value",order.getTargetWarehouse().getName());
+            data.put("thing8",key);
+            key = new JSONObject(); key.put("value",order.getTargetTime().toLocalDate().toString();
+            data.put("time7",key);
             body.put("data",data);
             StringEntity requestEntity = new StringEntity(
                     body.toString(),
