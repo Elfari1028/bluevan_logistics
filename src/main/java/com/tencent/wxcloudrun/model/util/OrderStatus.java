@@ -15,4 +15,19 @@ public enum OrderStatus {
             default:return created;
         }
     }
+
+    @Override
+    public String toString() {
+        switch (this){
+            case created:
+                return "已创建";
+            case canceled:
+                return  "已取消";
+            case locked:
+                return  "已锁定";
+            case delivered:
+                return "已送达";
+            default: return "";
+        }
+    }
 }

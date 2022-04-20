@@ -120,4 +120,12 @@ public class Cargo extends BaseObject implements Serializable{
     public void setNote(String note) {
         this.note = note;
     }
+
+    public int getSubcount() {
+        return subcount;
+    }
+
+    public void setSubcount(int subcount) {
+        this.subcount = subcount;
+    }
 }
