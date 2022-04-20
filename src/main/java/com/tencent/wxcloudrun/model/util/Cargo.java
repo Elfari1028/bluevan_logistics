@@ -12,8 +12,8 @@ public class Cargo extends BaseObject implements Serializable{
     private int count;
     private String cargoType;
     private String packageType;
-    private int volume;
-    private int weight;
+    private double volume;
+    private double weight;
     private String note;
     private int subcount;
 
@@ -27,8 +27,8 @@ public class Cargo extends BaseObject implements Serializable{
           else cargo.subcount = 0;
             cargo.cargoType = obj.getString("cargoType");
             cargo.packageType = obj.getString("packageType");
-            cargo.volume = obj.getInteger("volume");
-            cargo.weight = obj.getInteger("weight");
+            cargo.volume = obj.getDouble("volume");
+            cargo.weight = obj.getDouble("weight");
             cargo.note = obj.getString("note");
 
             return cargo;
@@ -97,19 +97,19 @@ public class Cargo extends BaseObject implements Serializable{
         this.packageType = packageType;
     }
 
-    public int getVolume() {
+    public double getVolume() {
         return volume;
     }
 
-    public void setVolume(int volume) {
+    public void setVolume(double volume) {
         this.volume = volume;
     }
 
-    public int getWeight() {
+    public double getWeight() {
         return weight;
     }
 
-    public void setWeight(int weight) {
+    public void setWeight(double weight) {
         this.weight = weight;
     }
 

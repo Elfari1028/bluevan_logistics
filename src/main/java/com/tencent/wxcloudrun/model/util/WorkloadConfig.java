@@ -67,14 +67,14 @@ public class WorkloadConfig extends BaseObject{
 
     public static class Info extends BaseObject{
         private String packageType;
-        private int maxLoad;
-        private List<Integer> settings;
+        private double maxLoad;
+        private List<Double> settings;
 
         static public Info objectifyJSON(JSONObject obj){
             Info info = new Info();
             info.packageType = obj.getString("packageType");
-            info.maxLoad = obj.getInteger("maxLoad");
-            info.settings = obj.getJSONArray("settings").toJavaList(Integer.class);
+            info.maxLoad = obj.getDouble("maxLoad");
+            info.settings = obj.getJSONArray("settings").toJavaList(Double.class);
             return info;
         }
 
@@ -82,8 +82,8 @@ public class WorkloadConfig extends BaseObject{
             JSONObject obj = JSON.parseObject(str);
             Info info = new Info();
             info.packageType = obj.getString("packageType");
-            info.maxLoad = obj.getInteger("maxLoad");
-            info.settings = obj.getJSONArray("settings").toJavaList(Integer.class);
+            info.maxLoad = obj.getDouble("maxLoad");
+            info.settings = obj.getJSONArray("settings").toJavaList(Double.class);
             return info;
        }
         @Override
