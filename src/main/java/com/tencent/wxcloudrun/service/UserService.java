@@ -213,11 +213,11 @@ public class UserService {
                 return;
             case canceled:
                 phrase = "已取消";
-                note = "取消后无法再次开启，若需操作请您重新下单";
+                note = "取消后无法再开启，若需操作请重新下单";
                 break;
             case locked:
                 phrase = "已锁定";
-                note = "本订单已由管理员修改内容，因此已被锁定。请查看订单核实，如需再次修改请联系管理员";
+                note = "订单已由管理员修改内容,请查看核实";
                 break;
             case delivered:
                 sendArrival(order);
