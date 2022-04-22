@@ -15,7 +15,7 @@ spring:
     time-zone: GMT+8
   datasource:
     hikari:
-      maxLifetime:18000
+      max-lifetime: 0
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://sh-cynosdbmysql-grp-rr5vyhp0.sql.tencentcdb.com:22489/baraka_logistics?serverTimezone=Asia/Shanghai
     username: root
