@@ -30,8 +30,11 @@ public class Order extends ModelBase implements Serializable {
     private LocalDateTime arrivalTime;
 
     private String receiverId;
+
+    @Lob
     private String cargos; //jsonfied data of cargos;
 
+    @Lob
     private String note;
 
     @Column(name = "order_status")

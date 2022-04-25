@@ -7,6 +7,7 @@ import com.tencent.wxcloudrun.model.util.*;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.Lob;
 import javax.persistence.OneToOne;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -20,10 +21,13 @@ public class Warehouse extends ModelBase implements Serializable {
 
     private String description;
 
+    @Lob
     private String worktimeConfig;
 
+    @Lob
     private String workloadConfig;
 
+    @Lob
     private String location;
 
     private boolean deleted;
