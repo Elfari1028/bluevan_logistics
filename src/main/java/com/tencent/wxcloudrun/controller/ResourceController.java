@@ -214,9 +214,13 @@ public class ResourceController {
     private void setRowSafe(Row row, int col, Object data){
         Cell cell =row.createCell(col);
         if(data == null)cell.setCellValue("");
-        if(data instanceof LocalDateTime)cell.setCellValue((LocalDateTime) data);
+        if(data instanceof LocalDateTime)cell.setCellValue(data.toString());
         if(data instanceof String)cell.setCellValue((String) data);
         if(data instanceof Integer)cell.setCellValue((Integer) data);
+        if(data instanceof Double)cell.setCellValue((Double) data);
+        if(data instanceof Float)cell.setCellValue((Float) data);
+
+
     }
 
 }
